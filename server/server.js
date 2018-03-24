@@ -18,7 +18,7 @@ app.post('/todo',(req,res)=>{
             res.send(doc);
         }
         ,(e)=>{
-            console.log(`error storing the body :${e}`);
+            res.status(400).send(e);
         })
 
 });
