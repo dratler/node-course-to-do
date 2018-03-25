@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 let todoModel = mongoose.model('todo',{
     text:{
         type:String,
-        require:true,
-        minlenght:1,
-        trim:true
+        required: true,
+        minlength: 1,
+        trim: true
     },
     compeleted:{
         type:Boolean,

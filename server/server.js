@@ -10,9 +10,16 @@ let app = express();
 
 app.use(body.json());
 
+app.get('/todo',(req,res)=>{
+    todoModel
+        .find()
+        .then((todos)=>{
+            res.send({todos});
+        },(err)=>{res.status(400).send(e);});
+});
+
 app.post('/todo',(req,res)=>{
     let todo = new todoModel({text:req.body.text});
-
     todo.save().then(
         (doc)=>{
             res.send(doc);
@@ -25,3 +32,5 @@ app.post('/todo',(req,res)=>{
 
 
 app.listen(port,()=>{console.log(`server is starting on port ${port}`)});
+
+module.exports = {app};
