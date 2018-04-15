@@ -1,16 +1,20 @@
-const mongoose = require('./db/mongoose');
+const express = require('express');
+const body = require('body-parser');
+let {ObjectID} = require('mongodb');
+
+
+const {mongoose} = require('../server/db/mongoose');
 let {todoModel} = require('./model/todo');
 let {userModel} = require('./model/user');
-
-let express = require('express');
-let body = require('body-parser');
 
 const port = process.PORT || 3000;
 let app = express();
 
 app.use(body.json());
 
-app.get('/todo',(req,res)=>{
+const TODO_PATH = '/todo';
+
+app.get(TODO_PATH,(req,res)=>{
     todoModel
         .find()
         .then((todos)=>{
@@ -18,7 +22,25 @@ app.get('/todo',(req,res)=>{
         },(err)=>{res.status(400).send(e);});
 });
 
-app.post('/todo',(req,res)=>{
+app.get(`${TODO_PATH}/:id`,(req,res)=>{
+    
+    let id = req.params.id;
+  
+    console.log(ObjectID);
+    if(!ObjectID.isValid(id)){
+        res.status(404).send(`Given id is invalid ${id}`);
+    }
+    todoModel
+    .findById(id)
+    .then((todo)=>{
+        if(!todo){
+            res.status(401).send(`Todo not found by id ${todo}`);
+        }
+        res.send({todo});
+    },(err)=>{res.status(400).send(e);});
+});
+
+app.post(TODO_PATH,(req,res)=>{
     let todo = new todoModel({text:req.body.text});
     todo.save().then(
         (doc)=>{
