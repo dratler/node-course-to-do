@@ -1,11 +1,13 @@
 const expect = require('expect');
 const request = require('supertest');
+const {ObjectID}= require('mongodb');
 
 const {app} = require('./../server');
 const {todoModel} = require('./../model/todo');
 
+const TODO_PATH = '/todo';
 
-const mockToDoData = [{text:'dummy Data one'},{text:'dummy Data two'}];
+const mockToDoData = [{_id:new ObjectID() ,text:'dummy Data one'},{_id:new ObjectID(),text:'dummy Data two'}];
 
 beforeEach((done) => {
     todoModel.remove({}).then(() => {
@@ -16,18 +18,17 @@ beforeEach((done) => {
 describe('GET /todo', () => {
   it('should get all the task at the system',(done)=>{
     request(app)
-      .get('/todo')
+      .get(TODO_PATH)
       .expect(200)
       .expect((res) => {
-        expect(res.body['todos']).toBe(mockToDoData);
+        expect(res.body.todos.length).toBe(2);
       }).end((err, res) => {
         if (err) {
           return done(err);
         }
 
         todoModel.find().then((todos) => {
-          console.log(`here ???? ${todos}`);
-          expect(todos['todos'].length).toBe(mockToDoData.length());
+          expect(Object.keys(todos).length).toBe(2);
           done();
         }).catch((e) => done(e));
       });
@@ -40,7 +41,7 @@ describe('POST /todo', () => {
     var text = 'Test todo text';
 
     request(app)
-      .post('/todo')
+      .post(TODO_PATH)
       .send({text})
       .expect(200)
       .expect((res) => {
@@ -61,7 +62,7 @@ describe('POST /todo', () => {
 
   it('should not create todo with invalid body data', (done) => {
     request(app)
-      .post('/todo')
+      .post(TODO_PATH)
       .send({})
       .expect(400)
       .end((err, res) => {
@@ -77,3 +78,25 @@ describe('POST /todo', () => {
   });
 });
 
+describe('GET /todo/:id', () => {
+  it('should return a task by id',(done)=>{
+    request(app)
+      .get(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body['todo'].text).toBe(mockToDoData[0].text);
+      }).end(done);
+  });
+  it('should return 400 for invalid id',(done)=>{
+    request(app)
+      .get(`${TODO_PATH}/123`)
+      .expect(400)
+      .end(done);
+  });
+  it('should return 404 for missing id',(done)=>{
+    request(app)
+      .get(`${TODO_PATH}/${new ObjectID().toHexString()}`)
+      .expect(404)
+      .end(done);
+  });
+});

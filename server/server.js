@@ -26,18 +26,17 @@ app.get(`${TODO_PATH}/:id`,(req,res)=>{
     
     let id = req.params.id;
   
-    console.log(ObjectID);
     if(!ObjectID.isValid(id)){
-        res.status(404).send(`Given id is invalid ${id}`);
+        res.status(400).send(`Given id is invalid ${id}`);
     }
     todoModel
     .findById(id)
     .then((todo)=>{
         if(!todo){
-            res.status(401).send(`Todo not found by id ${todo}`);
+            res.status(404).send(`Todo not found by id ${todo}`);
         }
         res.send({todo});
-    },(err)=>{res.status(400).send(e);});
+    },(err)=>{res.status(500).send(e);});
 });
 
 app.post(TODO_PATH,(req,res)=>{
