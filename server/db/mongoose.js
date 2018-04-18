@@ -6,3 +6,4 @@ let mongo_uri = 'mongodb://db_user_one:ZAQ!xsw2@ds147459.mlab.com:47459/node_c_t
 mongoose.connect(mongo_uri);
 
 module.exports = {mongoose};
+
