@@ -12,10 +12,6 @@ let app = express();
 
 app.use(body.json());
 
-app.get('/',(req,res)=>{
-    res.send('{status:"valid"}');
-});
-
 const TODO_PATH = '/todo';
 
 
