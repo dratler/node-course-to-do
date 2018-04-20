@@ -13,7 +13,7 @@ let app = express();
 app.use(body.json());
 
 const TODO_PATH = '/todo';
-``
+
 app.get(TODO_PATH,(req,res)=>{
     todoModel
         .find()
@@ -22,22 +22,12 @@ app.get(TODO_PATH,(req,res)=>{
         },(err)=>{res.status(400).send(e);});
 });
 
-app.get(`${TODO_PATH}/:id`,(req,res)=>{
-    
-    let id = req.params.id;
-  
+function isValid(id,res){
     if(!ObjectID.isValid(id)){
         res.status(400).send(`Given id is invalid ${id}`);
     }
-    todoModel
-    .findById(id)
-    .then((todo)=>{
-        if(!todo){
-            res.status(404).send(`Todo not found by id ${todo}`);
-        }
-        res.send({todo});
-    },(err)=>{res.status(500).send(e);});
-});
+}
+
 
 app.post(TODO_PATH,(req,res)=>{
     let todo = new todoModel({text:req.body.text});
@@ -49,6 +39,35 @@ app.post(TODO_PATH,(req,res)=>{
             res.status(400).send(e);
         })
 
+});
+
+app.get(`${TODO_PATH}/:id`,(req,res)=>{
+    let id = req.params.id;
+    isValid(id,res);
+    
+    todoModel
+    .findById(id)
+    .then((todo)=>{
+        if(!todo){
+            res.status(404).send(`Todo not found by id ${todo}`);
+        }
+        res.send({todo});
+    },(err)=>{res.status(500).send(e);});
+});
+
+
+app.delete(`${TODO_PATH}/:id`,(req,res)=>{
+    let id = req.params.id;
+    isValid(id,res);
+    todoModel
+        .findByIdAndRemove(id)
+        .then((status)=>{
+            if(!status){
+                res.status(404).send(`Todo not by id ${todo} was not delete`);
+            }
+            res.send();
+        },(err)=>{res.status(500).send(err);})
+        .catch((e)=>{res.status(500).send(e);})
 });
 
 
