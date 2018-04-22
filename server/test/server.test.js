@@ -7,7 +7,17 @@ const {todoModel} = require('./../model/todo');
 
 const TODO_PATH = '/todo';
 
-const mockToDoData = [{_id:new ObjectID() ,text:'dummy Data one'},{_id:new ObjectID(),text:'dummy Data two'}];
+const mockToDoData = [
+  {
+    _id:new ObjectID() ,
+    text:'dummy Data one'
+  },{
+    _id:new ObjectID(),
+    text:'dummy Data two',
+    compeleted:true,
+    time_stamp: new Date().getTime()
+  }
+];
 
 beforeEach((done) => {
     todoModel.remove({}).then(() => {
@@ -123,4 +133,29 @@ describe('DELETE /todo/:id',()=>{
       .end(done);
   });
   
+});
+
+describe('PACTH /todo/id',()=>{
+  let patch_todo = {text:'That"s all fulks',compeleted:true};
+  it('should delete a task by id',(done)=>{
+    request(app)
+    .patch(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+    .send(patch_todo)
+    .expect(200)
+    .expect((res) => {
+      expect(res.body['todo'].text).toBe(patch_todo.text);
+    }).end(done);
+  });
+  it('should return 400 for invalid id',(done)=>{
+    request(app)
+      .delete(`${TODO_PATH}/123`)
+      .expect(400)
+      .end(done);
+  });
+  it('should return 404 for missing id',(done)=>{
+    request(app)
+      .delete(`${TODO_PATH}/${new ObjectID().toHexString()}`)
+      .expect(404)
+      .end(done);
+  });
 });
