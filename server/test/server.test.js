@@ -6,6 +6,7 @@ const {app} = require('./../server');
 const {todoModel} = require('./../model/todo');
 
 const TODO_PATH = '/todo';
+const USER_PATH = '/user';
 
 const mockToDoData = [
   {
@@ -157,5 +158,24 @@ describe('PACTH /todo/id',()=>{
       .delete(`${TODO_PATH}/${new ObjectID().toHexString()}`)
       .expect(404)
       .end(done);
+  });
+});
+describe('POST /user',()=>{
+  const u = {email:'aaa@aaaa.com',password:'asdfgh'}
+  it('should create a user',(done)=>{
+      request(app)
+        .post(`${USER_PATH}`)
+        .send(u)
+        .expect(200)
+        .expect((res) => {
+        expect(res.body.email).toBe(u.email);
+       }).end(done);
+  });
+  it('should prevent creating the same user twice',(done)=>{
+    request(app)
+        .post(`${USER_PATH}`)
+        .send(u)
+        .expect(400)
+        .end(done);
   });
 });

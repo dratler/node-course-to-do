@@ -13,6 +13,7 @@ let app = express();
 app.use(body.json());
 
 const TODO_PATH = '/todo';
+const USER_PATH = '/user';
 
 app.get(TODO_PATH,(req, res)=>{
     todoModel
@@ -88,6 +89,24 @@ app.patch(`${TODO_PATH}/:id`,(req,res)=>{
         })
         .catch((e)=>{
             res.status(500).send(e);
+        });
+});
+
+app.post(USER_PATH,(req,res)=>{
+    let body = _.pick(req.body,["email","password"]);
+    let user = new userModel(body);
+    user
+        .save()
+        .then(()=>{
+            return user.generateAuthToken();
+            // res.send(doc);
+        })
+        .then((token)=>{
+            res.header('x-auth',token).send(user);
+        })
+        .catch((e)=>{
+            console.log(e);
+            res.status(400).send(e);
         });
 });
 
