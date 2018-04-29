@@ -1,3 +1,5 @@
+import { resolve } from 'path';
+
 const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
@@ -40,9 +42,9 @@ let userSchema = new mongoose.Schema({
 
 userSchema.methods.generateAuthToken = function(){
     let user = this;
-    let access = user.access;
-    let token = jwt.sign({_id:user._id, access},'abc123').toString();
-    user.token = user.token.concat([{access,token}]);
+    let access ='auth';
+    let token = jwt.sign({_id:user._id.toHexString(), access},'abc123').toString();
+    user.token = user.token.concat([{access, token}]);
     return user.save().then( ()=>{
         return token;
     });
@@ -51,7 +53,23 @@ userSchema.methods.generateAuthToken = function(){
 userSchema.methods.toJSON = function(){
     let user = this;
     let userObj = user.toObject();
-    return _.pick(userObj,['email','password','time_stamp']);
+    return _.pick(userObj,['_id','email']);
+}
+
+userSchema.statics.findByToken = function(token){
+    let user = this;
+    let decoded;
+    try{
+        decode = jwt.verify(token,'abc123');
+    } catch(e){
+       return Promise.reject();
+    }
+    return user.findOne({
+         '_id':decoded._id,
+        'token.token':token,
+        'token.access':'auth',
+    });
+    
 }
 
 let userModel = mongoose.model('user',userSchema);
