@@ -63,13 +63,26 @@ userSchema.statics.findByToken = function(token){
         } catch(e){
        return Promise.reject();
     }
-    console.log('I have found a user :'+user);
     return user.findOne({
          '_id':decoded._id,
          'tokens.token':token,
          'tokens.access':'auth',
     });
-    
+}
+
+userSchema.static.findByCredentials = function (email,p) {
+    let u = this;
+    let password;
+    try {
+        password = jwt.bcrypt(email.p);
+    } catch (e) {
+        return Promise.reject(`${e}`);
+    }
+    return u.findOne({
+        'email': user.email,
+        password
+    } )
+
 }
 
 userSchema.pre('save',function(next){
