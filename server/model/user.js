@@ -25,7 +25,7 @@ let userSchema = new mongoose.Schema({
         type:Number,
         default:new Date().getDate()
     },
-    token:[{
+    tokens:[{
         access:{
             type:String,
             require:true,
@@ -43,7 +43,7 @@ userSchema.methods.generateAuthToken = function(){
     let user = this;
     let access ='auth';
     let token = jwt.sign({_id:user._id.toHexString(), access},'abc123').toString();
-    user.token = user.token.concat([{access, token}]);
+    user.tokens.push({access, token});
     return user.save().then( ()=>{
         return token;
     });
@@ -59,14 +59,15 @@ userSchema.statics.findByToken = function(token){
     let user = this;
     let decoded;
     try{
-        decode = jwt.verify(token,'abc123');
-    } catch(e){
+        decoded = jwt.verify(token,'abc123');
+        } catch(e){
        return Promise.reject();
     }
+    console.log('I have found a user :'+user);
     return user.findOne({
          '_id':decoded._id,
-        'token.token':token,
-        'token.access':'auth',
+         'tokens.token':token,
+         'tokens.access':'auth',
     });
     
 }

@@ -93,6 +93,7 @@ app.patch(`${TODO_PATH}/:id`,(req,res)=>{
         });
 });
 
+
 app.post(USER_PATH,(req,res)=>{
     let body = _.pick(req.body,["email","password"]);
     let user = new userModel(body);
@@ -105,8 +106,7 @@ app.post(USER_PATH,(req,res)=>{
             res.header('x-auth',token).send(user);
         })
         .catch((e)=>{
-            console.log(e);
-            res.status(400).send(e);
+            res.status(401).send(e);
         });
 });
 
