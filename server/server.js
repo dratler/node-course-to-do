@@ -142,16 +142,16 @@ app.post(USER_PATH, (req, res) => {
 //login
 app.post(`${USER_PATH}/login`, (req, res) => {
     let user = extarctUserDataFromRequest(req);
-    user
+    userModel
         .findByCredentials(user.email, user.password)
-        .then(user)
         .then((u) => {
-            res.send(u);
+            return u.generateAuthToken().then((token) => {
+              res.header('x-auth', token).send(u);
+            });
         })
         .catch((e) => {
-            res.status(401).send(e);
-        })
-
+            res.status(400).send(e);
+        });
 });
 
 let extarctUserDataFromRequest = (req) => {
