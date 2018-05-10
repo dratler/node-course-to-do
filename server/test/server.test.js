@@ -4,7 +4,8 @@ const request = require('supertest');
 const {ObjectID}= require('mongodb');
 
 const {app} = require('./../server');
-const {todoModel} = require('./../model/todo');
+const { todoModel } = require('./../model/todo');
+const {userModel} = require('./../model/user');
 const { mockToDoData, populateTodo, mockUsers, populateUser } = require('./seed/seed');
 
 const TODO_PATH = '/todo';
@@ -120,7 +121,7 @@ describe('DELETE /todo/:id',()=>{
       .expect(404)
       .end(done);
   });
-  
+
 });
 
 describe('PACTH /todo/id',()=>{
@@ -163,7 +164,7 @@ describe('POST /user',()=>{
         .post(`${USER_PATH}`)
         .send({password:'halala'})
         .expect(401);
-        
+
     request(app)
         .post(`${USER_PATH}`)
         .send({email:'a'})
@@ -181,7 +182,6 @@ describe('POST /user',()=>{
 
 describe('GET /user/me',()=>{
   it('should return authenticated user by token',(done)=>{
-    console.log(`this is the token ${mockUsers[0].tokens[0].token}`);
     request(app)
       .get(`${USER_PATH}/me`)
       .set('x-auth',mockUsers[0].tokens[0].token)
@@ -198,3 +198,36 @@ describe('GET /user/me',()=>{
     .end(done);
   });
 });
+
+describe('POST /user/login', () => {
+  it('should return token on login', (done) => {
+    request(app)
+      .post(`${USER_PATH}/login`)
+      .send(mockUsers[0])
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toBeTruthy()
+      }).end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        userModel.findById(mockUsers[0]._id).then((u) => {
+          expect(u.tokens[0]).toMatchObject({
+            'access': 'auth',
+            // 'token': res.headers['x-auth']
+          });
+          done();
+        }).catch((e) => { done(e) })
+      })
+  });
+    it('should reject invalid login', (done) => {
+      request(app)
+        .post(`${USER_PATH}/login`)
+        .send({ email: mockUsers[0].email, password: 'invalidPa$$' })
+        .expect(400)
+        .expect((res) => {
+          expect(res.headers['x-auth']).toBeFalsy();
+        })
+        .end(done);
+    });
+  });
