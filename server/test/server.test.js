@@ -212,9 +212,9 @@ describe('POST /user/login', () => {
           return done(err);
         }
         userModel.findById(mockUsers[0]._id).then((u) => {
-          expect(u.tokens[0]).toMatchObject({
+          expect(u.tokens[1]).toMatchObject({
             'access': 'auth',
-            // 'token': res.headers['x-auth']
+            'token': res.headers['x-auth']
           });
           done();
         }).catch((e) => { done(e) })
@@ -231,3 +231,23 @@ describe('POST /user/login', () => {
         .end(done);
     });
   });
+
+describe('DELETE /user/me/token', () => {
+  let token = mockUsers[0].tokens[0].token;
+  it('should delete a token for logout', (done) => {
+    request(app)
+      .delete(`${USER_PATH}/me/token`)
+      .set('x-auth',token )
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+        userModel.findById(mockUsers[0]._id).then((u) => {
+          expect(u.tokens.length).toEqual(0);
+
+          done();
+        }).catch((e) => { done(e) })
+      });
+  });
+});

@@ -153,6 +153,13 @@ app.post(`${USER_PATH}/login`, (req, res) => {
             res.status(400).send(e);
         });
 });
+app.delete(`${USER_PATH}/me/token`,authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send();
+    }, (err) => {
+        res.status(400).send(err);
+    });
+});
 
 let extarctUserDataFromRequest = (req) => {
     let body = _.pick(req.body, ["email", "password"]);
