@@ -26,9 +26,9 @@ app.use(body.json());
 const TODO_PATH = '/todo';
 const USER_PATH = '/user';
 
-app.get(TODO_PATH, (req, res) => {
+app.get(TODO_PATH,authenticate, (req, res) => {
     todoModel
-        .find()
+        .find({_creator:req.user._id})
         .then((todos) => {
             res.send({
                 todos
@@ -38,15 +38,19 @@ app.get(TODO_PATH, (req, res) => {
         });
 });
 
-function isValid(id, res) {
+function isValid(id,creator, res) {
     if (!ObjectID.isValid(id)) {
         res.status(400).send(`Given value is not a valid id ${id}`);
     }
+    if (!ObjectID.isValid(creator)) {
+        res.status(400).send(`Given value is not a valid creator ${creator}`);
+    }
 }
 
-app.post(TODO_PATH, (req, res) => {
+app.post(TODO_PATH,authenticate, (req, res) => {
     let todo = new todoModel({
-        text: req.body.text
+        text: req.body.text,
+        _creator:req.user._id
     });
     todo.save().then(
         (doc) => {
@@ -56,12 +60,16 @@ app.post(TODO_PATH, (req, res) => {
         })
 });
 
-app.get(`${TODO_PATH}/:id`, (req, res) => {
+app.get(`${TODO_PATH}/:id`,authenticate, (req, res) => {
     let id = req.params.id;
-    isValid(id, res);
+    let creator = req.user._id;
+    isValid(id,creator, res);
 
     todoModel
-        .findById(id)
+        .findOne({
+            _id: id,
+            _creator:creator
+        })
         .then((todo) => {
             if (!todo) {
                 res.status(404).send(`Todo not found by id ${todo}`);
@@ -75,11 +83,15 @@ app.get(`${TODO_PATH}/:id`, (req, res) => {
 });
 
 
-app.delete(`${TODO_PATH}/:id`, (req, res) => {
+app.delete(`${TODO_PATH}/:id`,authenticate, (req, res) => {
     let id = req.params.id;
-    isValid(id, res);
+    let creator = req.user._id;
+    isValid(id,creator, res);
     todoModel
-        .findByIdAndRemove(id)
+        .findOneAndRemove({
+            _id: id,
+            _creator:creator
+        })
         .then((todo) => {
             if (!todo) {
                 res.status(404).send(`Todo not by id ${todo} was not delete`);
@@ -92,9 +104,10 @@ app.delete(`${TODO_PATH}/:id`, (req, res) => {
         });
 });
 
-app.patch(`${TODO_PATH}/:id`, (req, res) => {
+app.patch(`${TODO_PATH}/:id`,authenticate, (req, res) => {
     const id = req.params.id;
-    isValid(id, res);
+    let creator = req.user._id;
+    isValid(id,creator, res);
     const body = _.pick(req.body, ['compeleted', 'text']);
     if (_.isBoolean(body.compeleted) && body.compeleted) {
         body.time_stamp = new Date().getTime();
@@ -104,12 +117,7 @@ app.patch(`${TODO_PATH}/:id`, (req, res) => {
     }
 
     todoModel
-        .findByIdAndUpdate(id, {
-            $set: body
-        }, {
-            new: true
-        })
-        .then((todo) => {
+     .findOneAndUpdate({_id: id, _creator: creator}, {$set: body}, {new: true}).then((todo) => {
             if (!todo) {
                 res.status(404).send(`Todo not by id ${todo} was not delete`);
             }

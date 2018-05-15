@@ -38,13 +38,15 @@ const mockUsers = [
 const mockToDoData = [
   {
     _id: new ObjectID(),
-    text: "dummy Data one"
+    text: "dummy Data one",
+    _creator:userOneId
   },
   {
     _id: new ObjectID(),
     text: "dummy Data two",
     compeleted: true,
-    time_stamp: new Date().getTime()
+    time_stamp: new Date().getTime(),
+    _creator:userTwoId
   }
 ];
 

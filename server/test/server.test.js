@@ -18,20 +18,13 @@ describe('GET /todo', () => {
   it('should get all the task at the system',(done)=>{
     request(app)
       .get(TODO_PATH)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
-        expect(res.body.todos.length).toBe(2);
-      }).end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        todoModel.find().then((todos) => {
-          expect(Object.keys(todos).length).toBe(2);
-          done();
-        }).catch((e) => done(e));
-      });
+        expect(res.body.todos.length).toBe(1);
+      }).end(done);
   });
+
 });
 
 
@@ -41,6 +34,7 @@ describe('POST /todo', () => {
 
     request(app)
       .post(TODO_PATH)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .send({text})
       .expect(200)
       .expect((res) => {
@@ -62,6 +56,7 @@ describe('POST /todo', () => {
   it('should not create todo with invalid body data', (done) => {
     request(app)
       .post(TODO_PATH)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .send({})
       .expect(400)
       .end((err, res) => {
@@ -81,6 +76,7 @@ describe('GET /todo/:id', () => {
   it('should return a task by id',(done)=>{
     request(app)
       .get(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(200)
       .expect((res) => {
         expect(res.body['todo'].text).toBe(mockToDoData[0].text);
@@ -89,12 +85,21 @@ describe('GET /todo/:id', () => {
   it('should return 400 for invalid id',(done)=>{
     request(app)
       .get(`${TODO_PATH}/123`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(400)
       .end(done);
   });
   it('should return 404 for missing id',(done)=>{
     request(app)
       .get(`${TODO_PATH}/${new ObjectID().toHexString()}`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
+      .expect(404)
+      .end(done);
+  });
+  it('should not get other creater todo', (done) => {
+    request(app)
+      .get(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+      .set('x-auth',mockUsers[1].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -103,7 +108,8 @@ describe('GET /todo/:id', () => {
 describe('DELETE /todo/:id',()=>{
   it('should delete a task by id',(done)=>{
     request(app)
-    .delete(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+      .delete(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
     .expect(200)
     .expect((res) => {
       expect(res.body['todo'].text).toBe(mockToDoData[0].text);
@@ -112,12 +118,14 @@ describe('DELETE /todo/:id',()=>{
   it('should return 400 for invalid id',(done)=>{
     request(app)
       .delete(`${TODO_PATH}/123`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(400)
       .end(done);
   });
   it('should return 404 for missing id',(done)=>{
     request(app)
       .delete(`${TODO_PATH}/${new ObjectID().toHexString()}`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -128,7 +136,8 @@ describe('PACTH /todo/id',()=>{
   let patch_todo = {text:'That"s all fulks',compeleted:true};
   it('should delete a task by id',(done)=>{
     request(app)
-    .patch(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+      .patch(`${TODO_PATH}/${mockToDoData[0]._id.toHexString()}`)
+    .set('x-auth',mockUsers[0].tokens[0].token)
     .send(patch_todo)
     .expect(200)
     .expect((res) => {
@@ -138,12 +147,14 @@ describe('PACTH /todo/id',()=>{
   it('should return 400 for invalid id',(done)=>{
     request(app)
       .delete(`${TODO_PATH}/123`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(400)
       .end(done);
   });
   it('should return 404 for missing id',(done)=>{
     request(app)
       .delete(`${TODO_PATH}/${new ObjectID().toHexString()}`)
+      .set('x-auth',mockUsers[0].tokens[0].token)
       .expect(404)
       .end(done);
   });

@@ -14,6 +14,10 @@ let todoModel = mongoose.model('todo',{
     time_stamp:{
         type:Number,
         default:new Date().getDate()
+    },
+    _creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        require:true
     }
 });
 
