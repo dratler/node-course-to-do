@@ -2,7 +2,6 @@ const {userModel} = require('./../model/user');
 
 let authenticate = (req, res, next) => {
     let token = req.header('x-auth');
-  
     userModel.findByToken(token).then((user) => {
       if (!user) {
         return Promise.reject();
@@ -14,6 +13,6 @@ let authenticate = (req, res, next) => {
       res.status(401).send();
     });
   };
-  
+
 
 module.exports = {authenticate};
